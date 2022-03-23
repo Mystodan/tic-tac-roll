@@ -1,6 +1,7 @@
 module Main where
 
-import Lib ()
+import Lib (newBoard, gameLoop)
 
 main :: IO ()
-main = putStrLn ""
+main = do
+  gameLoop newBoard

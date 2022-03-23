@@ -6,8 +6,10 @@ module Lib
     newBoard,
     roll,
     printBoard,
-    checkBoard
+    checkBoard,
+    readInn
     ) where
+import Data.Type.Equality (inner)
 
 countOcc :: Eq a => a -> [a] -> Int
 countOcc want [] = 0
@@ -35,9 +37,10 @@ updateBoard (x:xs) (n,a) =
 
 printBoard::[Char]->String
 printBoard inn = [
-  '#','[',inn!!0,']','[',inn!!1,']','[',inn!!2,']','\n',
-  '#','[',inn!!3,']','[',inn!!4,']','[',inn!!5,']','\n',
-  '#','[',inn!!6,']','[',inn!!7,']','[',inn!!8,']'
+  ' ',' ',' ',' ',' ','1',' ',' ','2',' ',' ','3',' ','\n',
+  '#',' ','1',' ','[',inn!!0,']','[',inn!!1,']','[',inn!!2,']','\n',
+  '#',' ','2',' ','[',inn!!3,']','[',inn!!4,']','[',inn!!5,']','\n',
+  '#',' ','3',' ','[',inn!!6,']','[',inn!!7,']','[',inn!!8,']'
   ]
 
 
@@ -71,6 +74,38 @@ checkBoard inn
   | otherwise = (False,' ')
 
 
-gameLoop::[Char]->IO()
-gameLoop map = do
-  putStrLn $ printBoard map
+readInn::String -> Int
+readInn inn = do
+  let arr = map read $ words inn :: [Int]
+  if length arr == 2 then do
+    if arr!!1 == 0 || arr!!0 == 0 || arr!!0 > 3 || arr!!1 > 3 then (do
+      12) else (do
+    3*(arr!!1-1) + (arr!!0-1))
+  else
+    11
+
+
+
+gameLoop::[Char]-> Char->IO()
+gameLoop board turn = do
+  putStrLn $ printBoard board
+  putStrLn (turn : " - Turn")
+  inn <- getLine
+  let tInn = readInn inn
+  if tInn == 11 then do
+    putStr "Wrong amount of numbers, please input (x y) where the size is between 1-3"
+    gameLoop board turn
+  else if tInn == 12 then do
+    putStr "Wrong size of numbers, please input (x y) where the size is between 1-3"
+    gameLoop board turn
+  else do
+    if turn == 'X' then do
+      let r = updateBoard board (tInn, 'X')
+      gameLoop r 'Y'
+    else if turn == 'Y' then do
+      let r = updateBoard board (tInn, 'Y')
+      gameLoop r 'X'
+    else do
+    putStrLn "FATAL ERROR"
+
+  
