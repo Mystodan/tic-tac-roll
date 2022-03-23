@@ -42,8 +42,8 @@ printBoard inn = [
 
 
 roll:: [Char] -> String ->  [Char]
-roll  inn dir 
-  | dir == "left" = 
+roll  inn dir
+  | dir == "left" =
     [
       inn!!0,inn!!5,inn!!8,
       inn!!1,inn!!4,inn!!7,
@@ -56,19 +56,19 @@ roll  inn dir
       inn!!8,inn!!5,inn!!0
       ]
   | otherwise = inn
-  
 
-checkBoard:: [Char] -> Bool 
-checkBoard inn 
-  |    (inn!!0 /= ' ' && inn!!0 == inn!!1 && inn!!0 == inn!!2) 
-  ||   (inn!!3 /= ' ' && inn!!3 == inn!!4 && inn!!3 == inn!!5) 
-  ||   (inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8) = True 
-  |    (inn!!0 /= ' ' && inn!!0 == inn!!3 && inn!!0 == inn!!6) 
-  ||   (inn!!1 /= ' ' && inn!!1 == inn!!4 && inn!!1 == inn!!7) 
-  ||   (inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8) = True
-  |    (inn!!0 /= ' ' && inn!!0 == inn!!4 && inn!!0 == inn!!8) 
-  ||   (inn!!2 /= ' ' && inn!!2 == inn!!4 && inn!!2 == inn!!6) = True
-  | otherwise = False
+
+checkBoard:: [Char] -> (Bool,Char)
+checkBoard inn
+  |   inn!!0 /= ' ' && inn!!0 == inn!!1 && inn!!0 == inn!!2 = (True,inn!!0)
+  |   inn!!3 /= ' ' && inn!!3 == inn!!4 && inn!!3 == inn!!5 = (True,inn!!3)
+  |   inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8 = (True,inn!!2)
+  |   inn!!0 /= ' ' && inn!!0 == inn!!3 && inn!!0 == inn!!6 = (True,inn!!0)
+  |   inn!!1 /= ' ' && inn!!1 == inn!!4 && inn!!1 == inn!!7 = (True,inn!!1)
+  |   inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8 = (True,inn!!2)
+  |   inn!!0 /= ' ' && inn!!0 == inn!!4 && inn!!0 == inn!!8 = (True,inn!!0)
+  |   inn!!2 /= ' ' && inn!!2 == inn!!4 && inn!!2 == inn!!6 = (True,inn!!2)
+  | otherwise = (False,' ')
 
 
 gameLoop::[Char]->IO()
