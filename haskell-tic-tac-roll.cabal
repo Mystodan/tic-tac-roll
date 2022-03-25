@@ -32,6 +32,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , split
   default-language: Haskell2010
 
 executable haskell-tic-tac-roll-exe
@@ -44,6 +45,7 @@ executable haskell-tic-tac-roll-exe
   build-depends:
       base >=4.7 && <5
     , haskell-tic-tac-roll
+    , split
   default-language: Haskell2010
 
 test-suite haskell-tic-tac-roll-test
@@ -57,4 +59,5 @@ test-suite haskell-tic-tac-roll-test
   build-depends:
       base >=4.7 && <5
     , haskell-tic-tac-roll
+    , split
   default-language: Haskell2010
