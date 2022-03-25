@@ -1,12 +1,13 @@
 module Lib
     (updateBoard,
     countOcc,
-    getVal,
     newBoard,
     roll,
     printBoard,
     checkBoard,
-    readInn) where
+    readInn,
+    readUnit,
+    getPlayerTurn) where
 
 import Data.List.Split (splitOn)
 import Data.Char(toLower)
@@ -16,9 +17,6 @@ countOcc want [] = 0
 countOcc want list = sum $
  map(const 1) $
  filter (==want) list
-
-getVal :: Int -> [a] -> [a]
-getVal = take
 
 newBoard::[Char]
 newBoard = [
@@ -40,7 +38,7 @@ printBoard inn = [
   ' ',' ',' ',' ',' ','1',' ',' ','2',' ',' ','3',' ','\n',
   '#',' ','1',' ','[',inn!!0,']','[',inn!!1,']','[',inn!!2,']','\n',
   '#',' ','2',' ','[',inn!!3,']','[',inn!!4,']','[',inn!!5,']','\n',
-  '#',' ','3',' ','[',inn!!6,']','[',inn!!7,']','[',inn!!8,']'
+  '#',' ','3',' ','[',inn!!6,']','[',inn!!7,']','[',inn!!8,']','\n'
   ]
 
 
@@ -61,42 +59,85 @@ roll  inn dir
   | otherwise = inn
 
 
-checkBoard:: [Char] -> (Bool,Char)
+checkBoard:: [Char] -> (Bool,Char,[Char])
 checkBoard inn
-  |   inn!!0 /= ' ' && inn!!0 == inn!!1 && inn!!0 == inn!!2 = (True,inn!!0)
-  |   inn!!3 /= ' ' && inn!!3 == inn!!4 && inn!!3 == inn!!5 = (True,inn!!3)
-  |   inn!!6 /= ' ' && inn!!6 == inn!!7 && inn!!6 == inn!!8 = (True,inn!!2)
-  |   inn!!0 /= ' ' && inn!!0 == inn!!3 && inn!!0 == inn!!6 = (True,inn!!0)
-  |   inn!!1 /= ' ' && inn!!1 == inn!!4 && inn!!1 == inn!!7 = (True,inn!!1)
-  |   inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8 = (True,inn!!2)
-  |   inn!!0 /= ' ' && inn!!0 == inn!!4 && inn!!0 == inn!!8 = (True,inn!!0)
-  |   inn!!2 /= ' ' && inn!!2 == inn!!4 && inn!!2 == inn!!6 = (True,inn!!2)
-  | otherwise = (False,' ')
+  |   inn!!0 /= ' ' && inn!!0 == inn!!1 && inn!!0 == inn!!2 = (True,inn!!0,[
+      '-','-','-',
+      inn!!3,inn!!4,inn!!5,
+      inn!!6,inn!!7,inn!!8
+  ])
+  |   inn!!3 /= ' ' && inn!!3 == inn!!4 && inn!!3 == inn!!5 = (True,inn!!3,[
+      inn!!0,inn!!1,inn!!2,
+      '-','-','-',
+      inn!!6,inn!!7,inn!!8
+  ])
+  |   inn!!6 /= ' ' && inn!!6 == inn!!7 && inn!!6 == inn!!8 = (True,inn!!2,[
+      inn!!0,inn!!1,inn!!2,
+      inn!!3,inn!!4,inn!!5,
+     '-','-','-'
+  ])
+  |   inn!!0 /= ' ' && inn!!0 == inn!!3 && inn!!0 == inn!!6 = (True,inn!!0,[
+      '|',inn!!1,inn!!2,
+      '|',inn!!4,inn!!5,
+      '|',inn!!7,inn!!8
+  ])
+  |   inn!!1 /= ' ' && inn!!1 == inn!!4 && inn!!1 == inn!!7 = (True,inn!!1,[
+      inn!!0,'|',inn!!2,
+      inn!!3,'|',inn!!5,
+      inn!!6,'|',inn!!8
+  ])
+  |   inn!!2 /= ' ' && inn!!2 == inn!!5 && inn!!2 == inn!!8 = (True,inn!!2,[
+      inn!!0,inn!!1,'|',
+      inn!!3,inn!!4,'|',
+      inn!!6,inn!!7,'|'
+  ])
+  |   inn!!0 /= ' ' && inn!!0 == inn!!4 && inn!!0 == inn!!8 = (True,inn!!0,[
+      '\\',inn!!1,inn!!2,
+      inn!!3,'\\',inn!!5,
+      inn!!6,inn!!7,'\\'
+  ])
+  |   inn!!2 /= ' ' && inn!!2 == inn!!4 && inn!!2 == inn!!6 = (True,inn!!2,[
+      inn!!0,inn!!1,'/',
+      inn!!3,'/',inn!!5,
+      '/',inn!!7,inn!!8
+  ])
+  | otherwise = (False,' ',[])
 
+
+type Unit = String
+
+readUnit :: String -> Int
+readUnit s = case reads s of               
+    (n, ' ':unit):_ ->  n 
+    (n, ""      ):_ ->  n  
+    _ -> 13 -- Err msg
+
+getPlayerTurn :: Char -> (Char, Char)
+getPlayerTurn turn = do
+  if turn == 'O' then
+    ('O','X')
+  else
+    ('X','O')
 
 readInn::String -> (Int,String)
 readInn inn = do
-  let arr = map read $ words inn :: [Int]
-  let gArr = splitOn " " inn
-  let gLast = map toLower (gArr!!(length gArr-1))
-  if length arr == 2 then do
-    if arr!!1 == 0 || arr!!0 == 0 || arr!!0 > 3 || arr!!1 > 3 then
-      (12,"") else
-        (3*(arr!!1-1) + (arr!!0-1),"")
-  else if length arr == 3 then do
-    if arr!!1 == 0 || arr!!0 == 0 || arr!!0 > 3 || arr!!1 > 3 then
-      (12,"") else
-        if gLast == "right" then
-          (3*(arr!!1-1) + (arr!!0-1),"right")
-        else if gLast == "left" then
-          (3*(arr!!1-1) + (arr!!0-1),"left")
-        else
-          (3*(arr!!1-1) + (arr!!0-1),"")
+  let (gArr,val1,val2,gLast) = (splitOn " " inn, readUnit $ gArr!!0::Int,readUnit $ gArr!!1::Int,map toLower (gArr!!(length gArr-1)))
+  if val1 /= 13 || val2 /= 13 then do
+    if length gArr == 2 then do
+      if val2 == 0 || val1 == 0 || val1 > 3 || val2 > 3 then
+        (12,"") else -- Err msg
+          (3*(val2-1) + (val1-1),"")
+    else if length gArr == 3 then do
+      if val2 == 0 || val1 == 0 || val1 > 3 || val2 > 3 then
+        (12,"") else -- Err msg
+          if gLast == "right" then
+            (3*(val2-1) + (val1-1),"right")
+          else if gLast == "left" then
+            (3*(val2-1) + (val1-1),"left")
+          else
+            (3*(val2-1) + (val1-1),"")
+    else
+      (11,"") -- Err msg
   else
-    (11,"")
-
-
-
-
-
+    (13,"")  -- Err msg
   
