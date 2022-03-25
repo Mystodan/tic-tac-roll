@@ -1,10 +1,10 @@
 name:                haskell-tic-tac-roll
 version:             0.1.0.0
-github:              "githubuser/haskell-tic-tac-roll"
+github:              "daniehhu/haskell-tic-tac-roll"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2022 Author name here"
+author:              "Daniel Hao Huynh"
+maintainer:          "daniehhu@stud.ntnu.no"
+copyright:           "2022 Daniel Hao Huynh"
 
 extra-source-files:
 - README.md
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-tic-tac-roll#readme>
+description:         Please see the README on GitHub at <https://git.gvk.idi.ntnu.no/course/prog2006/as/daniehhu/haskell-tic-tac-roll>
 
 dependencies:
 - base >= 4.7 && < 5

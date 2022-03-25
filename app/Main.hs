@@ -26,14 +26,14 @@ handleErr err = case err of
   _ -> putStr ""
 
 playerTurnHandler ::[Char]-> (Int,String)-> Char -> Char -> IO()
-playerTurnHandler board (loc,rotation) pTurn wantPiece = do
-  let (newPiece, nextTurn) = getPlayerTurn pTurn
-  if wantPiece /= nextTurn then do
-    let addPiece = updateBoard board (loc, newPiece)
-    gameLoop (roll addPiece rotation) nextTurn
+playerTurnHandler board (loc,rotation) pTurn wantMark = do
+  let (newMark, nextTurn) = getPlayerTurn pTurn
+  if wantMark /= nextTurn then do
+    let addMark = updateBoard board (loc, newMark)
+    gameLoop (roll addMark rotation) nextTurn
   else do
     gamePrompt "!! Space is occupied!"
-    gameLoop (roll board rotation) newPiece
+    gameLoop (roll board rotation) newMark
 
 gameLoop::[Char]-> Char->IO()
 gameLoop board turn = do
