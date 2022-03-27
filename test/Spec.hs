@@ -1,5 +1,6 @@
 import Test.Hspec ( hspec, context, describe, it, shouldBe )
 import Control.Exception(evaluate)
+import Test.QuickCheck (quickCheck)
 import Test.DocTest (doctest)
 import Test.HUnit (runTestTT, Test (TestCase, TestLabel, TestList), assertEqual)
 import System.Random (mkStdGen, Random (randomR), StdGen)
@@ -28,89 +29,15 @@ import ComputerOperatedPlayer (
     copErr
   )
 
-
-unitTests :: Test
-unitTests = TestList [
-  TestLabel "countOcc" $ TestCase $
-   assertEqual "counts occurrances of a char from string" 2 $
-   countOcc 'J' "Jason, Jason Bourne" ,
-
-  TestLabel "createBoard" $ TestCase $
-   assertEqual "creates a new board" "         " createBoard,
-
-  TestLabel "updateBoard" $ TestCase $
-   assertEqual "updates board based on index data and char" "X        "
-   $ updateBoard createBoard (0,'X'),
-
-  TestLabel "printBoard" $ TestCase $
-   assertEqual "converts raw board data to printable kawaii string" " \t   1  2  3 \n#\t1 [O][ ][X]\n#\t2 [ ][O][X]\n#\t3 [X][ ][ ]"
-   $ printBoard "O X OXX  ",
-
-  TestLabel "swapEarlyMarks" $ TestCase $
-   assertEqual "swaps the first and third mark on board" "X O OXX  "
-   $ swapEarlyMarks "O X OXX  ",
-
-  TestLabel "roll" $ TestCase $
-   assertEqual "swaps the first and third mark on board then rolls board to a direction" "X X O  XO"
-   $ roll "O X OXX  " "right",
-
-  TestLabel "checkDraw" $ TestCase $
-   assertEqual "checks board for draw" True
-   $checkDraw "OXOXOXXOX" 0 ,
-
-  TestLabel "checkBoard" $ TestCase $
-   assertEqual "checks board for win condition" (True,'X',"O | O|X |")
-   $ checkBoard "O X OXX X" ,
-
-  TestLabel "readUnit"  $ TestCase $
-   assertEqual "reads string and checks for err " 13
-   $  readUnit "" ,
-
-  TestLabel "getPlayerTurn" $ TestCase $
-   assertEqual "gets current turn and returns current- and next turn" ('X','O')
-   $ getPlayerTurn 'X' ,
-
-  TestLabel "gameLoopErrHandlr" $ TestCase $
-   assertEqual "Gets raw index data for board, and checks for err" False
-   $ gameLoopErrHandlr 1,
-
-  TestLabel "convertInn" $ TestCase $
-   assertEqual "Converts input to data nessescary for board. and checks for err" (1,2,"right")
-   $ convertInn ["1","2", "right"],
-
-  TestLabel "genRandNum" $ TestCase $
-   assertEqual "gets a random num based on min max and seed" 2
-   $ genRandNum 1 2 1,
-
-  TestLabel "readInn" $ TestCase $
-   assertEqual "Checks if string is legal and returns raw location data(an index number of board) for board" (6,"right")
-   $ readInn "1 3 right",
-
-  TestLabel "readStr"$ TestCase $
-   assertEqual "reads 1 and last string" ("1","2")
-   $  readStr "1 2",
-
-  TestLabel "copErr" $ TestCase $
-   assertEqual  "returns fatal err on COP" (False, '-') copErr,
-
-  TestLabel "readCOP" $ TestCase $
-   assertEqual "reads string if player wants computer operated opponent" (True,'O')
-   $ readCOP "yes x",
-
-  TestLabel "copGetLegalSpace"$ TestCase $
-   assertEqual "returns legal space on board for COP" 8
-   $copGetLegalSpace "XXXXXXXX " (0,8,1),
-
-  TestLabel "copHandleRoll" $ TestCase $
-   assertEqual"returns roll for COP" "right"
-   $ copHandleRoll 1 
-  ]
-
+prop_createBoard:: [Char] -> Bool
+prop_createBoard board = createBoard == "         " 
+ 
 
 main :: IO ()
 main = do
   doctest ["-isrc", "src/ComputerOperatedPlayer.hs", "src/GameHandler"] -- DocTest
   
+  quickCheck prop_createBoard
   _ <- runTestTT unitTests -- UnitTest
   
   hspec $ do -- Hspec
@@ -246,3 +173,82 @@ main = do
         copHandleRoll 1 `shouldBe` "right"
         copHandleRoll 6 `shouldBe` "left"
         copHandleRoll 2 `shouldBe` ""
+
+
+unitTests :: Test
+unitTests = TestList [
+  TestLabel "countOcc" $ TestCase $
+   assertEqual "counts occurrances of a char from string" 2 $
+   countOcc 'J' "Jason, Jason Bourne" ,
+
+  TestLabel "createBoard" $ TestCase $
+   assertEqual "creates a new board" "         " createBoard,
+
+  TestLabel "updateBoard" $ TestCase $
+   assertEqual "updates board based on index data and char" "X        "
+   $ updateBoard createBoard (0,'X'),
+
+  TestLabel "printBoard" $ TestCase $
+   assertEqual "converts raw board data to printable kawaii string" " \t   1  2  3 \n#\t1 [O][ ][X]\n#\t2 [ ][O][X]\n#\t3 [X][ ][ ]"
+   $ printBoard "O X OXX  ",
+
+  TestLabel "swapEarlyMarks" $ TestCase $
+   assertEqual "swaps the first and third mark on board" "X O OXX  "
+   $ swapEarlyMarks "O X OXX  ",
+
+  TestLabel "roll" $ TestCase $
+   assertEqual "swaps the first and third mark on board then rolls board to a direction" "X X O  XO"
+   $ roll "O X OXX  " "right",
+
+  TestLabel "checkDraw" $ TestCase $
+   assertEqual "checks board for draw" True
+   $checkDraw "OXOXOXXOX" 0 ,
+
+  TestLabel "checkBoard" $ TestCase $
+   assertEqual "checks board for win condition" (True,'X',"O | O|X |")
+   $ checkBoard "O X OXX X" ,
+
+  TestLabel "readUnit"  $ TestCase $
+   assertEqual "reads string and checks for err " 13
+   $  readUnit "" ,
+
+  TestLabel "getPlayerTurn" $ TestCase $
+   assertEqual "gets current turn and returns current- and next turn" ('X','O')
+   $ getPlayerTurn 'X' ,
+
+  TestLabel "gameLoopErrHandlr" $ TestCase $
+   assertEqual "Gets raw index data for board, and checks for err" False
+   $ gameLoopErrHandlr 1,
+
+  TestLabel "convertInn" $ TestCase $
+   assertEqual "Converts input to data nessescary for board. and checks for err" (1,2,"right")
+   $ convertInn ["1","2", "right"],
+
+  TestLabel "genRandNum" $ TestCase $
+   assertEqual "gets a random num based on min max and seed" 2
+   $ genRandNum 1 2 1,
+
+  TestLabel "readInn" $ TestCase $
+   assertEqual "Checks if string is legal and returns raw location data(an index number of board) for board" (6,"right")
+   $ readInn "1 3 right",
+
+  TestLabel "readStr"$ TestCase $
+   assertEqual "reads 1 and last string" ("1","2")
+   $  readStr "1 2",
+
+  TestLabel "copErr" $ TestCase $
+   assertEqual  "returns fatal err on COP" (False, '-') copErr,
+
+  TestLabel "readCOP" $ TestCase $
+   assertEqual "reads string if player wants computer operated opponent" (True,'O')
+   $ readCOP "yes x",
+
+  TestLabel "copGetLegalSpace"$ TestCase $
+   assertEqual "returns legal space on board for COP" 8
+   $copGetLegalSpace "XXXXXXXX " (0,8,1),
+
+  TestLabel "copHandleRoll" $ TestCase $
+   assertEqual"returns roll for COP" "right"
+   $ copHandleRoll 1 
+  ]
+
