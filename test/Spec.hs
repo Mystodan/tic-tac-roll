@@ -1,4 +1,4 @@
-import Test.Hspec
+import Test.Hspec ( hspec, context, describe, it, shouldBe )
 import Control.Exception(evaluate)
 import Test.DocTest (doctest)
 import Test.HUnit (runTestTT, Test (TestCase, TestLabel, TestList), assertEqual)
