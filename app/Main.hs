@@ -6,7 +6,7 @@ import GameHandler (
     readInn,
     updateBoard,
     roll,
-    newBoard,
+    createBoard,
     checkBoard,
     gameLoopErrHandlr,
     getPlayerTurn,
@@ -16,7 +16,8 @@ import GameHandler (
 import ComputerOperatedPlayer (
     readCOP,
     copHandleRoll,
-    copGetLegalSpace
+    copGetLegalSpace,
+    copErr
   )
 
 
@@ -113,12 +114,23 @@ playerAssignmentPrompt = do
   gamePrompt "Do you want to play against a Computer Operated Player?\n\tInput either yes and the symbol you want, or no\n \t\t for example: YES X, yes o, no,NO"
   getLine
 
+handleWinMsg:: Char -> (Bool,Char) -> IO ()
+handleWinMsg winner cop = do
+  if fst cop then
+    if snd cop == winner then
+      gamePrompt "!COP - The Computer Operated Player WON!"
+    else
+      gamePrompt "!YOU - You WON!"
+  else
+    gamePrompt $ "!Congrats [" ++ winner: "] for winning!"
+
 
 
 gameLoop::[Char]-> Char-> (Bool,Char) -> Int ->IO()
 gameLoop board turn cop seed = do
   if not winCondition then do  -- win condition checks recursively
     if not (checkDraw board 0) then do
+      putStrLn $ "["++board++"]"
       if turn /= snd cop then do
         handlePlayer board turn cop
       else do
@@ -127,14 +139,9 @@ gameLoop board turn cop seed = do
       putStrLn $ printBoard board
       gamePrompt "!DRAW!"
   else do
+    putStrLn $ "["++board++"]"
     putStrLn $ printBoard winningBoard
-    if fst cop then
-      if snd cop == winner then
-        gamePrompt "!COP - The Computer Operated Player WON!"
-      else
-        gamePrompt "!YOU - You WON!"
-    else
-      gamePrompt $ "!Congrats [" ++ winner: "] for winning!"
+    handleWinMsg winner cop
   where
     (winCondition,winner,winningBoard) = checkBoard board -- handles winning condition
 
@@ -142,10 +149,12 @@ startGameLoop :: Int -> IO()
 startGameLoop seed = do
   gameType <- playerAssignmentPrompt
   let copData = readCOP gameType
-  if copData ==  (True, 'O') || copData ==  (True, 'X') || copData ==  (False,'+') then
+  if copData /= copErr  then
     gameLoop newBoard 'X' copData seed
   else
     startGameLoop seed
+  where
+    newBoard = createBoard
 
 main :: IO ()
 main = do

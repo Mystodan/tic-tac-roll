@@ -62,8 +62,12 @@ test-suite haskell-tic-tac-roll-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , QuickCheck
+    , base >=4.7 && <5
+    , doctest
     , haskell-tic-tac-roll
+    , hspec
     , random
     , split
     , time

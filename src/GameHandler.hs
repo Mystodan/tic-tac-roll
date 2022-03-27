@@ -1,9 +1,11 @@
 module GameHandler(
       updateBoard,
       countOcc,
-      newBoard,
+      createBoard,
+      convertInn,
       roll,
       printBoard,
+      swapEarlyMarks,
       checkBoard,
       readInn,
       readUnit,
@@ -19,29 +21,47 @@ import Data.Type.Equality (inner)
 import System.Random (randomR, mkStdGen)
 
 -- Pure game logic
-{-
-- counts occurances of an element from list
--}
+
+-- | countOcc
+--    counts occurances of an element from list
+-- Examples:
+--
+-- >>> countOcc 'J' "Jason, Jason Bourne" 
+-- 2
+-- >>>  countOcc 'B' "BOB DYLAN IS OP"
+-- 2
+-- >>>  countOcc '!' ""
+-- 0
 countOcc :: Eq a => a -> [a] -> Int
 countOcc want [] = 0
 countOcc want list = sum $
  map(const 1) $
  filter (==want) list
 
-{- 
-- sets a new board
--}
-newBoard::[Char]
-newBoard = [
+
+-- | createBoard
+--    sets a new board
+-- Examples:
+--
+-- >>> createBoard 
+-- "         " 
+createBoard::[Char]
+createBoard = [
   ' ',' ',' ',
   ' ',' ',' ',
   ' ',' ',' '
   ]
 
-{- 
-- Updates the board by replacing a value on the new board
-- (x:xs): the original board it takes inn(rawdata)
--}
+
+-- | updateBoard
+--    Updates the board by replacing a value on the new board
+--    (x:xs): the original board it takes inn(rawdata)
+-- Examples:
+--
+-- >>> updateBoard createBoard (0,'X')
+-- "X        "
+-- >>> updateBoard "O X OXX  " (0,'X')
+-- "X X OXX  "
 updateBoard :: [Char] -> (Int, Char) -> [Char]
 updateBoard [] _ = []
 updateBoard (_:xs) (0,a) = a:xs
@@ -50,10 +70,14 @@ updateBoard (x:xs) (n,a) =
     then x:xs
     else x: updateBoard xs (n-1,a)
 
-{- 
-- Converts raw list data to printable string
-- inn: the original board it takes inn(rawdata)
--}
+-- | printBoard
+--    converts raw board data to printable kawaii string
+-- Examples:
+--
+-- >>> printBoard createBoard
+-- " \t   1  2  3 \n#\t1 [ ][ ][ ]\n#\t2 [ ][ ][ ]\n#\t3 [ ][ ][ ]"
+-- >>> printBoard "O X OXX  "
+-- " \t   1  2  3 \n#\t1 [O][ ][X]\n#\t2 [ ][O][X]\n#\t3 [X][ ][ ]"
 printBoard::[Char]->String
 printBoard inn = [
   ' ','\t',' ',' ',' ','1',' ',' ','2',' ',' ','3',' ','\n',
@@ -62,10 +86,16 @@ printBoard inn = [
   '#','\t','3',' ','[',inn!!6,']','[',inn!!7,']','[',inn!!8,']'
   ]
 
-{- 
-- Swaps the 0th and 2nd mark:
-- inn: the original board it takes inn(rawdata)
--}
+
+-- | swapEarlyMarks
+--    "swaps the first and third mark on board
+--    inn: the original board it takes inn(rawdata)
+-- Examples:
+--
+-- >>> swapEarlyMarks createBoard 
+-- "         "
+-- >>> swapEarlyMarks "O X OXX  " 
+-- "X O OXX  "
 swapEarlyMarks::[Char] -> [Char]
 swapEarlyMarks inn = [
   inn!!2,inn!!1,inn!!0,
@@ -73,11 +103,19 @@ swapEarlyMarks inn = [
   inn!!6,inn!!7,inn!!8
   ]
 
-{- 
-- Rotates the board in a direction after swapping the 0th and 2nd mark:
-- inn: the original board it takes inn(rawdata)
-- dir: the direction of the rotation
--}
+-- | roll
+-- Rotates the board in a direction after swapping the 0th and 2nd mark:
+-- inn: the original board it takes inn(rawdata)
+-- dir: the direction of the rotation
+--    
+-- Examples:
+--
+-- >>> roll createBoard "left" 
+-- "         "
+-- >>> roll "O X OXX  " "right"
+-- "X X O  XO"
+-- >>> roll "O X OXX  " "left"
+-- "OX  O X X"
 roll:: [Char] -> String ->  [Char]
 roll inn dir = do
   let new = swapEarlyMarks inn
@@ -96,19 +134,32 @@ roll inn dir = do
         ]
     _ -> inn
 
+-- | checkDraw
+-- checks board for draw
+-- >>> checkDraw createBoard 0 
+-- False
+-- >>> checkDraw "OXOXOXXOX" 0 
+-- True
+-- >>> checkDraw createBoard 0 
+-- False
 checkDraw:: [Char]->Int->Bool
-checkDraw board index = do
-  index >= length board || (do
-    (board!!index /= ' ') && checkDraw board (index+1))
+checkDraw board index = index >= length board || (do (board!!index /= ' ') && checkDraw board (index+1))
 
 
 
-{- 
-- Checks board for win condition and returns:
-- if someone won  ::Bool
-- who won         ::Char
-- winning board   ::[Char] -- after drawing a line through the winning tiles (rawdata)
--}
+
+
+-- | checkBoard
+-- Checks board for win condition and returns:
+-- if someone won  ::Bool
+-- who won         ::Char
+-- winning board   ::[Char] -- after drawing a line through the winning tiles (rawdata)
+-- >>>  checkBoard createBoard
+-- (False,' ',"")
+-- >>> checkBoard "OXOXOXXOX"
+-- (False,' ',"")
+-- >>> checkBoard "O X OXX X"
+-- (True,'X',"O | O|X |")
 checkBoard:: [Char] -> (Bool,Char,[Char])
 checkBoard inn
   |   inn!!0 /= ' ' && inn!!0 == inn!!1 && inn!!0 == inn!!2 = (True,inn!!0,[
@@ -155,19 +206,27 @@ checkBoard inn
 
 type Unit = String
 
-{- 
-- reads string as Int, and returns err if anything other than int
--}
+-- | readUnit
+-- reads string as Int, and returns err if anything other than int
+-- >>> readUnit "1"  
+-- 1
+-- >>> readUnit "1 12311"
+-- 1
+-- >>> readUnit "1 12311a"  
+-- 1
 readUnit :: String -> Int
 readUnit s = case reads s of
     (n, ' ':unit):_ ->  n
     (n, ""      ):_ ->  n
     _ -> 13 -- Err msg
 
-{- 
-- Gets player turn and returns marks
-- turn: player turn
--}
+-- |getPlayerTurn
+-- Gets player turn and returns marks
+-- turn: player turn
+-- >>>  getPlayerTurn 'X'  
+-- ('X','O')  
+-- >>>  getPlayerTurn 'O'  
+-- ('O','X') 
 getPlayerTurn :: Char -> (Char, Char)
 getPlayerTurn turn = do
   if turn == 'O' then -- if current player is O
@@ -175,19 +234,31 @@ getPlayerTurn turn = do
   else                -- if current player is X
     ('X','O')         -- returns current mark and next mark
 
-{- 
-- Gets raw location data for board, and checks for err
-- err: raw location data for board
--}
+-- | gameLoopErrHandlr
+-- Gets raw location data for board, and checks for err
+-- err: raw location data for board
+-- >>> gameLoopErrHandlr 11 
+-- True  
+-- >>>  gameLoopErrHandlr 12 
+-- True  
+-- >>>  gameLoopErrHandlr 13 
+-- True 
+-- >>>  gameLoopErrHandlr 1  
+-- False
 gameLoopErrHandlr :: Int -> Bool
 gameLoopErrHandlr err = do
   (err == 11 || err == 12 || err == 13) && (do --different err codes
     True) -- returns true since err has been encountered
 
-{- 
-- Converts input to data nessescary for board.
-- inn: data from getLine as String 
--}
+-- |convertInn
+-- Converts input to data nessescary for board. and checks for err
+-- inn: data from getLine as String 
+-- >>> convertInn ["1","2"] 
+-- (1,2,"2") 
+-- >>> convertInn ["1","2", "right"]  
+-- (1,2,"right")
+-- >>> convertInn ["a","a"]  
+-- (13,13,"a")
 convertInn :: [String] -> (Int,Int,String)
 convertInn inn = do
   let (
@@ -201,14 +272,26 @@ convertInn inn = do
           )
   (first,second,last)
 
+-- | genRandNum
+-- >>>  genRandNum 1 2 1  
+-- 2  
+-- >>>  genRandNum 1 2 10  
+-- 1   
 genRandNum:: Int -> Int -> Int -> Int
-genRandNum min max seed = do
-  let (retNum,_) = randomR (min,max) $ mkStdGen seed
-  retNum
+genRandNum min max seed = retNum
+  where 
+    (retNum,_) = randomR (min,max) $ mkStdGen seed
 
-{-
- - Checks if data is legal and returns nessescary data 
- -}
+-- | readInn
+-- Checks if string is legal and returns raw location data(an index number of board) for board
+-- >>>  readInn "1 2" 
+-- (3,"")  
+-- >>>  readInn "1 3 right"  
+-- (6,"right")
+-- >>>  readInn "1 3 3 right"  
+-- (11,"")
+-- >>>  readInn "9 9 right"  
+-- (12,"")
 readInn::String -> (Int,String)
 readInn inn = do
   let list = splitOn " " inn  --                        // Splits String into list of strings 

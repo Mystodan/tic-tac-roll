@@ -49,3 +49,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - haskell-tic-tac-roll
+    - doctest
+    - QuickCheck
+    - HUnit
+    - hspec
