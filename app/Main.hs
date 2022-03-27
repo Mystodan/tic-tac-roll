@@ -1,11 +1,6 @@
 module Main where
 
 import Data.Time ( getCurrentTime, UTCTime(utctDayTime) )
-import ComputerOperatedPlayer ( 
-    readCOP,
-    copHandleRoll,
-    copGetLegalSpace 
-  )
 import GameHandler (
     printBoard,
     readInn,
@@ -18,8 +13,11 @@ import GameHandler (
     genRandNum,
     checkDraw
   )
-import Data.String (String)
-
+import ComputerOperatedPlayer (
+    readCOP,
+    copHandleRoll,
+    copGetLegalSpace
+  )
 
 
 gamePrompt::String->IO()
@@ -42,6 +40,16 @@ handleErr err = case err of
 playerTurnHandler ::[Char]-> (Int,String)-> Char -> Char -> (Bool,Char) ->IO()
 playerTurnHandler board (loc,rotation) pTurn wantMark cop = do
   if wantMark /= nextTurn then do -- checks if space is occupied
+    putStrLn $ printBoard newBoard
+    if fst cop then (do
+      case rotation of
+        "right" -> putStrLn ">>YOU -> Turning right..."
+        "left" -> putStrLn  ">>YOU -> Turning left..."
+        _-> putStr "") else (do
+      case rotation of
+        "right" -> putStrLn $ ">> ["++newMark:"] -> Turning right..."
+        "left" -> putStrLn  $ ">> ["++newMark:"] -> Turning left..."
+        _-> putStr "")
     gameLoop (roll newBoard rotation) nextTurn cop 0
   else do
     gamePrompt "!! Space is occupied!"
@@ -50,16 +58,19 @@ playerTurnHandler board (loc,rotation) pTurn wantMark cop = do
     (newMark, nextTurn) = getPlayerTurn pTurn
     newBoard = updateBoard board (loc, newMark)
 
-playerTurnPrompt ::[Char] -> Char -> IO String
-playerTurnPrompt board turn = do
-  gamePrompt $ ">>> "++ turn : " - Turn"
+playerTurnPrompt ::[Char] -> Char -> (Bool,Char) -> IO String
+playerTurnPrompt board turn cop = do
+  if not $ fst cop then
+   gamePrompt $ ">>> "++ turn : " - Turn"
+  else
+    gamePrompt $ ">>> Your("++ turn : ") Turn"
   putStrLn "\tIn order to make a move, write it as if it were coordinates on a map:\n \t\t x y , for example: 1 2\n"
   putStrLn $ printBoard board
   getLine
 
 handlePlayer :: [Char]-> Char-> (Bool,Char) -> IO()
 handlePlayer board turn cop = do
-  inn <- playerTurnPrompt board turn
+  inn <- playerTurnPrompt board turn cop
   let (tInn,rotation) = readInn inn
   if gameLoopErrHandlr tInn then do -- handles err
     handleErr tInn
@@ -73,11 +84,19 @@ handlePlayer board turn cop = do
 
 copTurnHandler:: [Char]-> Char-> (Bool,Char) -> Int->IO()
 copTurnHandler board turn cop seed= do
-
-  gameLoop (roll newBoard $ copHandleRoll seed) nextTurn cop seed
+  gamePrompt $ ">>> COP("++ turn : ") Turn"
+  putStrLn "\tComputer Operated Player\n"
+  putStrLn $ printBoard board
+  putStrLn $ printBoard newBoard
+  case turnHandler of
+    "right" -> putStrLn ">>COP -> Turning right..."
+    "left" -> putStrLn  ">>COP -> Turning left..."
+    _-> putStr ""
+  gameLoop (roll newBoard turnHandler ) nextTurn cop seed
   where
     (newMark, nextTurn) = getPlayerTurn $ snd cop
     (min, max) = (0::Int,8::Int)
+    turnHandler = copHandleRoll seed
     loc =  copGetLegalSpace board (min,max,seed)
     newBoard = updateBoard board (loc, newMark)
 
@@ -85,7 +104,7 @@ copTurnHandler board turn cop seed= do
 
 handleCOP :: [Char]-> Char-> (Bool,Char)-> Int -> IO()
 handleCOP board turn cop seed = do
-  if (turn == 'X') || (turn == 'O') then (do -- handles player turn
+  if (turn == 'X') || (turn == 'O') then (do -- handles Computer Operated Player turn
     copTurnHandler board turn cop seed) else (do
     putStrLn "$!¤? FATAL ERROR <<<")
 
@@ -93,6 +112,8 @@ playerAssignmentPrompt :: IO String
 playerAssignmentPrompt = do
   gamePrompt "Do you want to play against a Computer Operated Player?\n\tInput either yes and the symbol you want, or no\n \t\t for example: YES X, yes o, no,NO"
   getLine
+
+
 
 gameLoop::[Char]-> Char-> (Bool,Char) -> Int ->IO()
 gameLoop board turn cop seed = do
@@ -107,7 +128,13 @@ gameLoop board turn cop seed = do
       gamePrompt "!DRAW!"
   else do
     putStrLn $ printBoard winningBoard
-    gamePrompt $ "!Congrats [" ++ winner: "] for winning!"
+    if fst cop then
+      if snd cop == winner then
+        gamePrompt "!COP - The Computer Operated Player WON!"
+      else
+        gamePrompt "!YOU - You WON!"
+    else
+      gamePrompt $ "!Congrats [" ++ winner: "] for winning!"
   where
     (winCondition,winner,winningBoard) = checkBoard board -- handles winning condition
 

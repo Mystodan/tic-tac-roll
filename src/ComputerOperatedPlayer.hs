@@ -20,9 +20,9 @@ readCOP inn = do
   let ((t1,t2), first, second) = (readStr inn,map toLower t1, map toLower t2)
   case first of
     "yes" -> do
-      if head second == 'x' then
+      if second == "x" then
         (True,'O')
-      else if head second == 'o' then
+      else if second == "o" then
         (True,'X')
       else
         noAI
@@ -39,12 +39,12 @@ copGetLegalSpace board (min,max,seed) = do
 
 copHandleRoll ::Int -> String 
 copHandleRoll seed = do
-  if rnd < 2 then
-    "left"
-  else
-    "right"
+  case rnd of
+    0 -> "left"
+    1 -> "right"
+    _->  ""
   where
-    rnd  = genRandNum 0 4 seed
+    rnd  = genRandNum 0 3 seed
 
 
 
